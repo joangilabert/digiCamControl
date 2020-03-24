@@ -806,6 +806,7 @@ namespace CameraControl.Core.Classes
         private bool _disableHardwareAcceleration;
         private string _fullScreenPassword;
         private string _currentThemeNameNew;
+        private bool _webcamSupport;
 
         [XmlIgnore]
         [JsonIgnore]
@@ -935,7 +936,15 @@ namespace CameraControl.Core.Classes
         public int ExternalDeviceWaitForFocus { get; set; }
         public int ExternalDeviceWaitForCapture { get; set; }
 
-        public bool WebcamSupport { get; set; }
+        public bool WebcamSupport
+        {
+            get
+            {
+                return false;
+                return _webcamSupport;
+            }
+            set { _webcamSupport = value; }
+        }
 
         public bool WiaDeviceSupport { get; set; }
 
@@ -1285,6 +1294,10 @@ namespace CameraControl.Core.Classes
             {
                 Log.Error(e);
             }
+
+            if (photoSession == null)
+                photoSession = new PhotoSession();
+
             return photoSession;
         }
 
@@ -1357,16 +1370,27 @@ namespace CameraControl.Core.Classes
             {
                 Log.Error("Error loading config file ", exception);
             }
+
+            if (defaultSettings==null)
+                defaultSettings=new Settings();
+
             return defaultSettings;
         }
 
         public PhotoSession GetSession(string name)
         {
-            if (string.IsNullOrEmpty(name))
-                return null;
-            if (!string.IsNullOrEmpty(name))
+            try
             {
-                return PhotoSessions.FirstOrDefault(photoSession => photoSession.Name == name);
+                if (string.IsNullOrEmpty(name))
+                    return null;
+                if (!string.IsNullOrEmpty(name))
+                {
+                    return PhotoSessions.FirstOrDefault(photoSession => photoSession.Name == name);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Debug("Error find photo session ",e);
             }
             return null;
         }
